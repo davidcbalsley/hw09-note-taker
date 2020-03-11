@@ -49,7 +49,7 @@ app.post("/api/notes", function(req, res) {
       const noteList = JSON.parse(data);
 
       // Use the last note to determine the id for the new note
-      if (noteList) {
+      if (noteList && (noteList.length > 0)) {
         newNoteId = noteList[noteList.length - 1].id + 1;
       } else {
         newNoteId = 1;
@@ -70,6 +70,32 @@ app.post("/api/notes", function(req, res) {
 
     // Return the new note to the client
     res.json(req.body);
+});
+
+// DELETE /api/notes/:id -- remove the note with the given id, then re-write the db.json file
+app.delete("/api/notes/:id", function(req, res) {
+  const updatedNoteList = []; // A list of notes that excludes the deleted note
+
+  // Read in the db.json file
+  fs.readFile("db/db.json", (err, data) => {
+    if (err) throw err;
+    
+    // Get an array of notes from data
+    const noteList = JSON.parse(data);
+
+    for (const note of noteList) {
+      if (note.id !== parseInt(req.params.id)) {
+        updatedNoteList.push(note);
+      }
+    }
+    
+    // Write the updated list of notes back to db.json
+    fs.writeFile("db/db.json", JSON.stringify(updatedNoteList), (err) => {
+      if (err) throw err;
+    });
+
+    res.json(updatedNoteList);
+  });
 });
 
 // Starts the server to begin listening
