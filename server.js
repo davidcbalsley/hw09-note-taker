@@ -34,6 +34,8 @@ app.get("*", function(req, res) {
 
 // POST /api/notes -- add new note to db.json file, then return the new note to the client
 app.post("/api/notes", function(req, res) {
+    let newNoteId = null;   // The ID for the new note
+
     // Get new note from req.body
     const newNote = req.body;
 
@@ -46,8 +48,19 @@ app.post("/api/notes", function(req, res) {
       // Get an array of notes from data
       const noteList = JSON.parse(data);
 
+      // Use the last note to determine the id for the new note
+      if (noteList) {
+        newNoteId = noteList[noteList.length - 1].id + 1;
+      } else {
+        newNoteId = 1;
+      }
+
+      // Add an id to the new note
+      newNote.id = newNoteId;
+      newNoteId++;
+
       // Add the new note to the list of notes
-      noteList.push(req.body);
+      noteList.push(newNote);
       
       // Write the updated list of notes back to db.json
       fs.writeFile("db/db.json", JSON.stringify(noteList), (err) => {
